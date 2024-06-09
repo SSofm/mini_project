@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="8dp">
+        
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            android:elevation="10dp">
+            <ImageView
+                android:id="@+id/videoThumbnail1"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder" />
+        </androidx.cardview.widget.CardView>
+
+
+
+        <TextView
+            android:id="@+id/videoTitle1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:text="Video Title"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/videoResolution1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Resolution" />
+
+        <TextView
+            android:id="@+id/videoDuration1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Duration" />
+
+        <TextView
+            android:id="@+id/videoSize1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Size" />
+
+        <TextView
+            android:id="@+id/videoAngle1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Angle" />
+
+        <CheckBox
+            android:id="@+id/video_checkbox_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            android:elevation="10dp">
+
+            <ImageView
+                android:id="@+id/videoThumbnail2"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder" />
+
+        </androidx.cardview.widget.CardView>
+
+
+
+        <TextView
+            android:id="@+id/videoTitle2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:text="Video Title"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/videoResolution2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Resolution" />
+
+        <TextView
+            android:id="@+id/videoDuration2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Duration" />
+
+        <TextView
+            android:id="@+id/videoSize2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Size" />
+
+        <TextView
+            android:id="@+id/videoAngle2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Angle" />
+
+        <CheckBox
+            android:id="@+id/video_checkbox_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"/>
+    </LinearLayout>
+</LinearLayout>
