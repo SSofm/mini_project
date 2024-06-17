@@ -10,17 +10,25 @@ public class VideoItem {
     private String duration;
     private String size;
     private String angle;
+
+    private String path;
     private boolean selected;
 
-    public VideoItem(String id, String title, String resolution, String duration, String size, String angle) {
+    public VideoItem(String id, String title, String resolution, String duration, String size, String angle, String path) {
         this.id = id;
         this.title = title;
         this.resolution = resolution;
         this.duration = duration;
         this.size = size;
         this.angle = angle;
+        this.path = path;
         this.selected = false;
     }
+
+    public String getPath() {
+        return path;
+    }
+
 
     public String getId() {
         return id;

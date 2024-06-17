@@ -1,0 +1,13 @@
+Một số phương thức để thông báo cho adapter
+biết rằng dữ liệu đã thay đổi
+
+- `nofifyDataSetChanged`: Phương thức này sẽ thông báo cho adapter rằng toàn bộ dữ liệu đã thay đổi và cần được
+cập nhật. Điều này sẽ khiến tất cả các mục trong RecycleView được vẽ lại, điều này có thể thể gây ra hiệu suất kém nếu bạn chỉ thay đổi vài mục
+
+- Các phương thức cập nhật cụ thể. Thay vì sử dụng `notifyDataSetChanged` , bạn nên sử dụng các phương thức thông báo cập nhật cụ thể hơn để tối ưu hiệu suất
+	- notifyItemChanged(int position): Thông báo rằng một mục ở vị trí cụ thể đã thay đổi.
+	- notifyItemInserted(int position): Thông báo rằng một mục đã được thêm vào vị trí cụ thể.
+	- notifyItemRemoved(int position): Thông báo rằng một mục đã bị xóa khỏi vị trí cụ thể.
+	- notifyItemRangeChanged(int positionStart, int itemCount): Thông báo rằng một phạm vi các mục đã thay đổi.
+	- notifyItemRangeInserted(int positionStart, int itemCount): Thông báo rằng một phạm vi các mục đã được thêm vào.
+	- notifyItemRangeRemoved(int positionStart, int itemCount): Thông báo rằng một phạm vi các mục đã bị xóa.

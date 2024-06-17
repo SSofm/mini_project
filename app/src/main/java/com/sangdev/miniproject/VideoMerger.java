@@ -1,20 +1,30 @@
 package com.sangdev.miniproject;
 
-import android.content.res.AssetFileDescriptor;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.os.Build;
 import android.util.Log;
+
+
+import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 public class VideoMerger {
 
-    private static final String TAG = "VideoMerger";
+    private static int mVideoTrackIndex1 = -1;
+    private static int mAudioTrackIndex1 = -1;
+    private static int mVideoTrackIndex2 = -1;
+    private static int mAudioTrackIndex2 = -1;
 
-    public void mergeVideos(AssetFileDescriptor afd1, AssetFileDescriptor afd2, String outputFile) throws IOException {
+    private static final String TAG = "VideoMerger";
+    private static final Logger logger = Logger.getLogger(VideoMerger.class.getName());
+
+    public static void mergeVideos(String filePath1, String filePath2, String outputFile) throws IOException {
         MediaMuxer mediaMuxer = null;
         MediaExtractor videoExtractor1 = new MediaExtractor();
         MediaExtractor videoExtractor2 = new MediaExtractor();
@@ -22,11 +32,11 @@ public class VideoMerger {
             mediaMuxer = new MediaMuxer(outputFile, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             // Trích xuất và ghi track video từ video đầu tiên
-            videoExtractor1.setDataSource(afd1.getFileDescriptor(), afd1.getStartOffset(), afd1.getLength());
+            videoExtractor1.setDataSource(filePath1);
             int videoTrackIndex1 = selectTrack(videoExtractor1, "video/");
             MediaFormat videoFormat1 = videoExtractor1.getTrackFormat(videoTrackIndex1);
             videoExtractor1.selectTrack(videoTrackIndex1);
-            int muxerVideoTrackIndex = mediaMuxer.addTrack(videoFormat1);
+            int muxerVideoTrackIndex1 = mediaMuxer.addTrack(videoFormat1);
 
             // Tuỳ chọn, trích xuất và ghi track audio từ video đầu tiên
             int audioTrackIndex1 = selectTrack(videoExtractor1, "audio/");
@@ -37,6 +47,13 @@ public class VideoMerger {
                 muxerAudioTrackIndex = mediaMuxer.addTrack(audioFormat1);
             }
 
+            // Trích xuất và ghi track video từ video thứ hai
+            videoExtractor2.setDataSource(filePath2);
+            int videoTrackIndex2 = selectTrack(videoExtractor2, "video/");
+            MediaFormat videoFormat2 = videoExtractor2.getTrackFormat(videoTrackIndex2);
+            videoExtractor2.selectTrack(videoTrackIndex2);
+            int muxerVideoTrackIndex2 = mediaMuxer.addTrack(videoFormat2);
+
             // Trích xuất và ghi track audio từ video thứ hai
             int audioTrackIndex2 = selectTrack(videoExtractor2, "audio/");
             int muxerAudioTrackIndex2 = -1;
@@ -46,23 +63,15 @@ public class VideoMerger {
                 muxerAudioTrackIndex2 = mediaMuxer.addTrack(audioFormat2);
             }
 
-            // Trích xuất và ghi track video từ video thứ hai
-            videoExtractor2.setDataSource(afd2.getFileDescriptor(), afd2.getStartOffset(), afd2.getLength());
-            int videoTrackIndex2 = selectTrack(videoExtractor2, "video/");
-            MediaFormat videoFormat2 = videoExtractor2.getTrackFormat(videoTrackIndex2);
-            videoExtractor2.selectTrack(videoTrackIndex2);
-
-
             mediaMuxer.start();
 
             // Ghi dữ liệu video từ video đầu tiên
-            writeSampleData(videoExtractor1, mediaMuxer, muxerVideoTrackIndex, muxerAudioTrackIndex);
-
-
-
+            mVideoTrackIndex1 = videoTrackIndex1;
+            long lastPresentationTimeUs = writeSampleData(videoExtractor1, mediaMuxer, muxerVideoTrackIndex1, muxerAudioTrackIndex, 0);
 
             // Ghi dữ liệu video từ video thứ hai
-            writeSampleData(videoExtractor2, mediaMuxer, muxerVideoTrackIndex, muxerAudioTrackIndex2);
+            mVideoTrackIndex2 = videoTrackIndex2;
+            writeSampleData(videoExtractor2, mediaMuxer, muxerVideoTrackIndex2, muxerAudioTrackIndex2, lastPresentationTimeUs);
 
         } finally {
             if (mediaMuxer != null) {
@@ -70,20 +79,19 @@ public class VideoMerger {
                     mediaMuxer.stop();
                     mediaMuxer.release();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.severe(e.toString());
                 }
             }
             videoExtractor1.release();
             videoExtractor2.release();
-            afd1.close();
-            afd2.close();
         }
     }
 
-    private int selectTrack(MediaExtractor extractor, String mimePrefix) {
+    private static int selectTrack(MediaExtractor extractor, String mimePrefix) {
         for (int i = 0; i < extractor.getTrackCount(); i++) {
             MediaFormat format = extractor.getTrackFormat(i);
             String mime = format.getString(MediaFormat.KEY_MIME);
+            assert mime != null;
             if (mime.startsWith(mimePrefix)) {
                 return i;
             }
@@ -91,10 +99,15 @@ public class VideoMerger {
         return -1;
     }
 
-    private void writeSampleData(MediaExtractor extractor, MediaMuxer muxer, int videoTrackIndex, int audioTrackIndex) {
 
-        ByteBuffer buffer = ByteBuffer.allocate(256 * 1024);
+
+    private static long writeSampleData(MediaExtractor extractor, MediaMuxer muxer, int videoTrackIndex, int audioTrackIndex, long startPresentationTimeUs) {
+        Log.d(TAG, "writeSampleData: check videoindex " + videoTrackIndex);
+        Log.d(TAG, "writeSampleData: check audioindex " + audioTrackIndex);
+        int bufferSize = determineBufferSize(extractor, mVideoTrackIndex1);
+        ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        long lastPresentationTimeUs = startPresentationTimeUs;
 
         while (true) {
             bufferInfo.offset = 0;
@@ -104,22 +117,28 @@ public class VideoMerger {
                 bufferInfo.size = 0;
                 break;
             }
-            bufferInfo.presentationTimeUs = extractor.getSampleTime();
-            bufferInfo.flags = mapExtractorFlagsToCodecFlags(extractor.getSampleFlags());
+            bufferInfo.presentationTimeUs = extractor.getSampleTime() + startPresentationTimeUs;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                bufferInfo.flags = mapExtractorFlagsToCodecFlags(extractor.getSampleFlags());
+            }
             int trackIndex = extractor.getSampleTrackIndex();
-            if (trackIndex == videoTrackIndex) {
+            Log.d(TAG, "writeSampleData: trackindex " + trackIndex);
+            if (trackIndex == 0 && videoTrackIndex%2==0) {
                 muxer.writeSampleData(videoTrackIndex, buffer, bufferInfo);
-            } else if (trackIndex == audioTrackIndex) {
+            } else if (trackIndex == 1 && audioTrackIndex%2!=0)  {
                 muxer.writeSampleData(audioTrackIndex, buffer, bufferInfo);
             }
+            lastPresentationTimeUs = bufferInfo.presentationTimeUs;
             extractor.advance();
         }
+        return lastPresentationTimeUs;
     }
 
-    private int mapExtractorFlagsToCodecFlags(int extractorFlags) {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static int mapExtractorFlagsToCodecFlags(int extractorFlags) {
         int codecFlags = 0;
         if ((extractorFlags & MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
-            codecFlags |= MediaCodec.BUFFER_FLAG_SYNC_FRAME;
+            codecFlags |= MediaCodec.BUFFER_FLAG_KEY_FRAME;
         }
         if ((extractorFlags & MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0) {
             codecFlags |= MediaCodec.BUFFER_FLAG_PARTIAL_FRAME;
@@ -130,12 +149,12 @@ public class VideoMerger {
         return codecFlags;
     }
 
-    private int determineBufferSize(MediaExtractor extractor, int trackIndex) {
+    private static int determineBufferSize(MediaExtractor extractor, int trackIndex) {
         MediaFormat format = extractor.getTrackFormat(trackIndex);
         int width = format.getInteger(MediaFormat.KEY_WIDTH);
         int height = format.getInteger(MediaFormat.KEY_HEIGHT);
         int pixelCount = width * height;
-        int bufferSize = 0;
+        int bufferSize;
 
         if (pixelCount <= 1280 * 720) { // 720p
             bufferSize = 256 * 1024; // 256 KB

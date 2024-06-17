@@ -1,0 +1,26 @@
+@startuml
+start
+while(!outputDone?)
+    if(!inputDone?) is (yes) then
+     : Feed extracted frames from MediaExtractor to MediaCodec
+     - Check finish decoder
+     - Copy a chunk of input to the decoder;
+     else (no)
+     endif
+   : // Assume output available loop until both assumptions are false.
+   boolean decoderOutputAvailable = !decoder
+   boolean encoderOutputAvailable = true;
+
+    while(decoderOutputAvailable || encoderOutputAvailable?)
+      : Drain Encoder & mux to output file
+      - Check finish
+      - Write the data to the output "file";
+
+      : Get output from decoder and feed it to encoder
+      - Wait till new frame available after onFrameAvailable has been called
+      - doRender, Send it to the encoder;
+    endwhile
+endwhile
+stop
+
+@enduml
