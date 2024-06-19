@@ -1,11 +1,14 @@
 package com.sangdev.miniproject;
 
+import static com.sangdev.miniproject.VideoUtils.getOutputRemoveSoundFilePath;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.MediaController;
 import android.widget.Toast;
@@ -28,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
     private ActivityMainBinding binding;
     private VideoAdapter videoAdapter;
     private List<VideoItem> videoList;
+
+    private final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +67,12 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
                     inputPaths.add(item.getPath());
                 }
             }
-            String outputPath = VideoUtils.getOutputFilePath(inputPaths.get(0));
+            String outputPath = VideoUtils.getOutputMergeFilePath(inputPaths.get(0));
             if (inputPaths.size() == 2) {
+                Log.d(TAG, "onCreate: file path1 " + inputPaths.get(0));
+                Log.d(TAG, "onCreate: file path2 " + inputPaths.get(1));
                 try {
+//                    VideoMerger.removeAudioTrack(inputPaths.get(0), getOutputRemoveSoundFilePath(inputPaths.get(0)));
                     VideoMerger.mergeVideos(inputPaths.get(0), inputPaths.get(1), outputPath);
                     showShortToast("Merged video...");
                     playVideo(outputPath);

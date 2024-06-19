@@ -70,10 +70,19 @@ public class VideoUtils {
         }
     }
 
-    public static String getOutputFilePath(String inputFilePath) {
+    public static String getOutputMergeFilePath(String inputFilePath) {
         File inputFile = new File(inputFilePath);
         File parentDir = inputFile.getParentFile(); // Lấy thư mục cha của input file
         String outputFileName = "merged_video_" + System.currentTimeMillis() + ".mp4";
+        File outputFile = new File(parentDir, outputFileName);
+
+        return outputFile.getAbsolutePath();
+    }
+
+    public static String getOutputRemoveSoundFilePath(String inputFilePath) {
+        File inputFile = new File(inputFilePath);
+        File parentDir = inputFile.getParentFile(); // Lấy thư mục cha của input file
+        String outputFileName = "remove_sound_" + System.currentTimeMillis() + ".mp4";
         File outputFile = new File(parentDir, outputFileName);
 
         return outputFile.getAbsolutePath();

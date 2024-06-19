@@ -11,3 +11,54 @@ cập nhật. Điều này sẽ khiến tất cả các mục trong RecycleView 
 	- notifyItemRangeChanged(int positionStart, int itemCount): Thông báo rằng một phạm vi các mục đã thay đổi.
 	- notifyItemRangeInserted(int positionStart, int itemCount): Thông báo rằng một phạm vi các mục đã được thêm vào.
 	- notifyItemRangeRemoved(int positionStart, int itemCount): Thông báo rằng một phạm vi các mục đã bị xóa.
+
+
+
+	Mã hóa: Chuyển dữ liệu thô thành dạng nén hoặc mã hóa để lưu trữ hoặc truyền tải hiệu quả.
+    Giải mã: Chuyển dữ liệu đã nén hoặc mã hóa trở lại dạng thô để phát lại hoặc xử lý tiếp.
+
+
+    Encoder với MediaCodec
+    MediaCodec encoder = MediaCodec.createEncoderByType("video/avc");
+    MediaFormat format = MediaFormat.createVideoFormat("video/avc", width, height);
+    format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
+    format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+    format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+    format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
+    encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+
+    Decoder với MediaCodec
+    MediaCodec decoder = MediaCodec.createDecoderByType("video/avc");
+    MediaFormat format = MediaFormat.createVideoFormat("video/avc", width, height);
+    decoder.configure(format, surface, null, 0);
+
+
+    BIT_RATE: Quyết định chất lượng và kích thước của video mã hóa.
+    FRAME_RATE: Ảnh hưởng đến độ mượt mà của video.
+    COLOR_FORMAT: Định dạng cách màu sắc được mã hóa.
+    I_FRAME_INTERVAL: Quyết định khoảng cách giữa các khung hình độc lập, ảnh hưởng đến chất lượng và khả năng tua lại của video.
+
+
+    audioDecoder.queueInputBuffer(inputBufIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+    Đoạn mã này có nhiệm vụ gửi một khung dữ liệu rỗng (empty frame) vào bộ giải mã MediaCodec để báo hiệu kết thúc dòng dữ liệu (end of stream, EOS
+
+    Cài draw.io integration trong vs code để vẽ mô hình
+
+    File input surface.java:
+
+
+    Ý nghĩa của việc sử dụng bộ ba này trong việc merge video
+    Kết hợp và xử lý khung hình video:
+
+    OutputSurface nhận khung hình từ MediaCodec decoder, chuyển đổi nó thành một SurfaceTexture.
+    TextureRender sau đó render các khung hình này lên một Surface khác hoặc thực hiện các thao tác xử lý đồ họa.
+    Mã hóa khung hình:
+
+    InputSurface nhận khung hình đã xử lý từ TextureRender và cung cấp nó như là đầu vào cho MediaCodec encoder.
+    Khung hình này sau đó được mã hóa và ghi vào file hoặc truyền đi.
+    Chuyển đổi và kết hợp:
+
+    Sử dụng InputSurface và OutputSurface cho phép chuyển đổi khung hình giữa các định dạng khác nhau (ví dụ: từ định dạng nén của video gốc đến định dạng xử lý bởi OpenGL ES và sau đó mã hóa lại).
+    Điều này cho phép kết hợp nhiều video, áp dụng hiệu ứng, và xử lý khung hình một cách linh hoạt.
+    Tóm lại, việc sử dụng InputSurface, OutputSurface, và TextureRender cho phép bạn tận dụng sức mạnh của OpenGL ES để xử lý khung hình video trong quá trình mã hóa và giải mã, cung cấp một cơ chế hiệu quả để xử lý video và thêm hiệu ứng đồ họa.
+    
